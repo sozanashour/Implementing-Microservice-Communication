@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,8 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("/orders")
 public class OrderController {
 
-    private static final String USER_SERVICE_URL = "http://localhost:8080/users/";
+    @Value("${user.service.url}")
+    private String userServiceBaseUrl;
 
     private final RestTemplate restTemplate;
     private final Map<String, Order> orders = new ConcurrentHashMap<>();
@@ -65,7 +67,7 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<?> createOrder(@RequestBody Order order) {
         try {
-            restTemplate.getForObject(USER_SERVICE_URL + order.getUserId(), Object.class);
+            restTemplate.getForObject(userServiceBaseUrl + "/users/" + order.getUserId(), Object.class);
         } catch (HttpClientErrorException.NotFound e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "User not found with id: " + order.getUserId());
@@ -89,7 +91,7 @@ public class OrderController {
 
         try {
             Map<String, String> user = restTemplate.exchange(
-                USER_SERVICE_URL + order.getUserId(),
+                userServiceBaseUrl + "/users/" + order.getUserId(),
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<Map<String, String>>() {}

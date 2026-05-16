@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  user-service:
+    build:
+      context: ./user-service/user-service/user-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - microservice-network
+
+  order-service:
+    build:
+      context: ./order-service/order-service/order-service/order-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - USER_SERVICE_URL=http://user-service:8080
+    depends_on:
+      - user-service
+    networks:
+      - microservice-network
+
+networks:
+  microservice-network:
+    driver: bridge
